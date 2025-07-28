@@ -33,12 +33,16 @@ export function IndicatorChart({ title, data, unit }: IndicatorChartProps) {
 
   const formatAxisValue = (value: number) => {
     if (unit === 'currency') {
-      if (value >= 1000000000) {
+      if (value === 0) {
+        return '0';
+      } else if (Math.abs(value) >= 1000000000) {
         return `${(value / 1000000000).toFixed(1)}B`;
-      } else if (value >= 1000000) {
+      } else if (Math.abs(value) >= 1000000) {
         return `${(value / 1000000).toFixed(1)}M`;
-      } else if (value >= 1000) {
+      } else if (Math.abs(value) >= 1000) {
         return `${(value / 1000).toFixed(1)}K`;
+      } else {
+        return `${(value / 1000000).toFixed(1)}M`;
       }
     }
     return formatValue(value);

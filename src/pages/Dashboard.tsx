@@ -362,28 +362,30 @@ Busque pela empresa ou Ticker
         </div>
 
         {/* Data Management Actions */}
-        <div className="mb-8 flex gap-4">
-          <FinancialDataDialog
-            companyId={selectedCompany}
-            onSuccess={() => loadFinancialData(selectedCompany)}
-            mode="create"
-          />
-          {latestData && (
-            <>
-              <FinancialDataDialog
-                companyId={selectedCompany}
-                data={latestData}
-                onSuccess={() => loadFinancialData(selectedCompany)}
-                mode="edit"
-              />
-              <FinancialDataDialog
-                companyId={selectedCompany}
-                data={latestData}
-                onSuccess={() => loadFinancialData(selectedCompany)}
-                mode="delete"
-              />
-            </>
-          )}
+        <div className="mb-8 flex flex-col sm:flex-row gap-4 overflow-x-auto">
+          <div className="flex gap-4 min-w-fit">
+            <FinancialDataDialog
+              companyId={selectedCompany}
+              onSuccess={() => loadFinancialData(selectedCompany)}
+              mode="create"
+            />
+            {latestData && (
+              <>
+                <FinancialDataDialog
+                  companyId={selectedCompany}
+                  data={latestData}
+                  onSuccess={() => loadFinancialData(selectedCompany)}
+                  mode="edit"
+                />
+                <FinancialDataDialog
+                  companyId={selectedCompany}
+                  data={latestData}
+                  onSuccess={() => loadFinancialData(selectedCompany)}
+                  mode="delete"
+                />
+              </>
+            )}
+          </div>
         </div>
 
         {latestData && (
