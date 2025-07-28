@@ -362,8 +362,8 @@ Busque pela empresa ou Ticker
         </div>
 
         {/* Data Management Actions */}
-        <div className="mb-8 flex flex-col sm:flex-row gap-4 overflow-x-auto">
-          <div className="flex gap-4 min-w-fit">
+        <div className="mb-8">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
             <FinancialDataDialog
               companyId={selectedCompany}
               onSuccess={() => loadFinancialData(selectedCompany)}
