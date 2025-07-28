@@ -184,7 +184,7 @@ export default function Dashboard() {
   };
 
   const getIndicatorUnit = (field: keyof FinancialIndicator): 'currency' | 'percentage' | 'ratio' => {
-    const percentageFields = ['margem_ebitda_percent', 'margem_lucro_bruto_percent', 'margem_operacional_percent', 'margem_liquida_percent', 'roe', 'roa', 'roic', 'dividend_yield'];
+    const percentageFields = ['margem_ebitda_percent', 'margem_lucro_bruto_percent', 'margem_operacional_percent', 'margem_liquida_percent', 'roe', 'roa', 'roic', 'dividend_yield', 'percentual_divida_total_ativo_total'];
     const ratioFields = ['liquidez_corrente', 'liquidez_geral'];
     
     if (percentageFields.includes(field as string)) return 'percentage';
@@ -225,7 +225,10 @@ export default function Dashboard() {
   const formatInMillions = (value: number) => {
     if (value === 0) return 'R$ 0';
     const millions = value / 1000000;
-    return `R$ ${millions.toFixed(1)} milhões`;
+    return `R$ ${millions.toLocaleString('pt-BR', { 
+      minimumFractionDigits: 1, 
+      maximumFractionDigits: 1 
+    })} milhões`;
   };
 
   const selectedCompanyInfo = companies.find(c => c.id === selectedCompany);

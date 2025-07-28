@@ -26,7 +26,10 @@ export function ComparisonCard({
     switch (unit) {
       case 'currency':
         const valueInMillions = val / 1000000;
-        return `${valueInMillions.toFixed(1)} milhões`;
+        return `R$ ${valueInMillions.toLocaleString('pt-BR', { 
+          minimumFractionDigits: 1, 
+          maximumFractionDigits: 1 
+        })} milhões`;
       case 'percentage':
         return `${val.toFixed(2)}%`;
       case 'ratio':
