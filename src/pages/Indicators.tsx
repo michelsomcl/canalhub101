@@ -65,12 +65,12 @@ const defaultIndicators: IndicatorDefinition[] = [
 ];
 
 const categoryColors = {
-  revenue: "bg-primary",
-  cash_flow: "bg-secondary",
-  debt: "bg-accent",
-  liquidity: "bg-success",
-  profitability: "bg-primary",
-  returns: "bg-secondary",
+  revenue: "bg-blue-600 text-white",
+  cash_flow: "bg-blue-600 text-white", 
+  debt: "bg-blue-600 text-white",
+  liquidity: "bg-blue-600 text-white",
+  profitability: "bg-blue-600 text-white",
+  returns: "bg-blue-600 text-white",
 };
 
 const categoryLabels = {
@@ -444,7 +444,7 @@ export default function Indicators() {
                     </TableCell>
                     <TableCell>
                       {indicator.categoria ? (
-                        <span className="px-2 py-1 bg-secondary/10 text-secondary-foreground rounded-full text-sm">
+                        <span className="px-2 py-1 bg-amber-800 text-white rounded-full text-sm">
                           {indicator.categoria === 'Industria' ? 'Indústria' : 'Finanças'}
                         </span>
                       ) : (
