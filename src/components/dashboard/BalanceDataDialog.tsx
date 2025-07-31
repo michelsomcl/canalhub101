@@ -83,9 +83,9 @@ export function BalanceDataDialog({ onSuccess }: BalanceDataDialogProps) {
       const result = apiData.results[0];
       
       // Get the latest quarter data from different sources
-      const balanceSheet = result.balanceSheetHistoryQuarterly?.balanceSheetStatements?.[0];
+      const balanceSheet = result.balanceSheetHistoryQuarterly?.[0];
       const incomeStatement = result.incomeStatementHistory?.incomeStatementHistory?.[0];
-      const cashFlow = result.cashflowHistoryQuarterly?.cashflowStatements?.[0];
+      const cashFlow = result.cashflowHistoryQuarterly?.[0];
       const financialData = result.financialData;
       
       if (!balanceSheet && !incomeStatement && !cashFlow) {
