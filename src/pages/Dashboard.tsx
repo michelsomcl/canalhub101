@@ -4,6 +4,7 @@ import { IndicatorCard } from "@/components/dashboard/IndicatorCard";
 import { IndicatorChart } from "@/components/charts/IndicatorChart";
 import { ComparisonCard } from "@/components/dashboard/ComparisonCard";
 import { FinancialDataDialog } from "@/components/dashboard/FinancialDataDialog";
+import { BalanceDataDialog } from "@/components/dashboard/BalanceDataDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -144,146 +145,6 @@ export default function Dashboard() {
       toast({
         title: "Erro",
         description: "Erro ao carregar dados financeiros da empresa.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const fetchBalanceData = async () => {
-    if (!selectedCompanyInfo) {
-      toast({
-        title: "Erro",
-        description: "Nenhuma empresa selecionada.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const ticker = selectedCompanyInfo.ticker;
-    const apiUrl = `https://brapi.dev/api/quote/${ticker}?modules=incomeStatementHistory,balanceSheetHistoryQuarterly,cashflowHistoryQuarterly,financialData,defaultKeyStatistics&token=wPfe7QiGAUvuz5E2ERzQag`;
-
-    try {
-      toast({
-        title: "Buscando dados...",
-        description: "Fazendo requisição para a API externa.",
-      });
-
-      const response = await fetch(apiUrl);
-      if (!response.ok) {
-        throw new Error(`Erro na API: ${response.status}`);
-      }
-
-      const apiData = await response.json();
-      
-      if (!apiData.results || !apiData.results[0]) {
-        throw new Error("Dados não encontrados na API");
-      }
-
-      const result = apiData.results[0];
-      
-      // Get the latest quarter data from different sources
-      const balanceSheet = result.balanceSheetHistoryQuarterly?.balanceSheetStatements?.[0];
-      const incomeStatement = result.incomeStatementHistory?.incomeStatementHistory?.[0];
-      const cashFlow = result.cashflowHistoryQuarterly?.cashflowStatements?.[0];
-      const financialData = result.financialData;
-      
-      if (!balanceSheet && !incomeStatement && !cashFlow) {
-        throw new Error("Nenhum dado trimestral encontrado na API");
-      }
-
-      // Map API data to database fields based on the user's mapping
-      const quarterData = {
-        company_id: selectedCompanyInfo.id,
-        year: new Date().getFullYear(), // Will be updated based on actual quarter data
-        quarter_number: 1, // Will be updated based on actual quarter data
-        quarter: `${new Date().getFullYear()}-Q1`, // Will be updated
-        
-        // Revenue data from income statement
-        receitas_bens_servicos: incomeStatement?.totalRevenue || null,
-        custo_receita_operacional: incomeStatement?.costOfRevenue || null,
-        despesas_operacionais_total: incomeStatement?.totalOperatingExpenses || null,
-        lucro_operacional_antes_receita_despesa_nao_recorrente: incomeStatement?.operatingIncome || null,
-        lucro_liquido_apos_impostos: incomeStatement?.netIncome || null,
-        
-        // Cash flow data
-        caixa_equivalentes_caixa: balanceSheet?.cash || null,
-        fluxo_caixa_liquido_atividades_operacionais: cashFlow?.totalCashFromOperatingActivities || null,
-        variacao_liquida_caixa_total: cashFlow?.changeInCash || null,
-        
-        // Working capital and debt
-        capital_giro: (balanceSheet?.totalCurrentAssets || 0) - (balanceSheet?.totalCurrentLiabilities || 0) || null,
-        endividamento_total: balanceSheet?.totalDebt || null,
-        ativo_circulante: balanceSheet?.totalCurrentAssets || null,
-        passivo_circulante: balanceSheet?.totalCurrentLiabilities || null,
-        ativo_total: balanceSheet?.totalAssets || null,
-        passivo_total: balanceSheet?.totalLiab || null,
-        
-        // Calculate percentages and ratios
-        percentual_divida_total_ativo_total: balanceSheet?.totalDebt && balanceSheet?.totalAssets 
-          ? (balanceSheet.totalDebt / balanceSheet.totalAssets) * 100 : null,
-        liquidez_corrente: balanceSheet?.totalCurrentAssets && balanceSheet?.totalCurrentLiabilities
-          ? balanceSheet.totalCurrentAssets / balanceSheet.totalCurrentLiabilities : null,
-        
-        // Financial ratios from financialData
-        roe: financialData?.returnOnEquity ? financialData.returnOnEquity * 100 : null,
-        roa: financialData?.returnOnAssets ? financialData.returnOnAssets * 100 : null,
-        dividend_yield: financialData?.dividendYield ? financialData.dividendYield * 100 : null,
-        
-        // EBIT and EBITDA
-        ebit: incomeStatement?.ebit || null,
-        ebitda: incomeStatement?.ebitda || null,
-        
-        // Margins
-        margem_ebitda_percent: incomeStatement?.ebitda && incomeStatement?.totalRevenue
-          ? (incomeStatement.ebitda / incomeStatement.totalRevenue) * 100 : null,
-        margem_liquida_percent: incomeStatement?.netIncomeRatio ? incomeStatement.netIncomeRatio * 100 : null,
-        margem_operacional_percent: incomeStatement?.operatingIncome && incomeStatement?.totalRevenue
-          ? (incomeStatement.operatingIncome / incomeStatement.totalRevenue) * 100 : null,
-        margem_lucro_bruto_percent: incomeStatement?.grossProfit && incomeStatement?.totalRevenue
-          ? (incomeStatement.grossProfit / incomeStatement.totalRevenue) * 100 : null,
-      };
-
-      // Check if data already exists for this company and quarter
-      const { data: existingData, error: checkError } = await supabase
-        .from('financial_indicators')
-        .select('id')
-        .eq('company_id', selectedCompanyInfo.id)
-        .eq('quarter', quarterData.quarter)
-        .single();
-
-      if (checkError && checkError.code !== 'PGRST116') {
-        throw checkError;
-      }
-
-      if (existingData) {
-        toast({
-          title: "Dados já existem",
-          description: "Os dados para este trimestre já foram importados.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      // Insert new data
-      const { error: insertError } = await supabase
-        .from('financial_indicators')
-        .insert(quarterData);
-
-      if (insertError) throw insertError;
-
-      toast({
-        title: "Sucesso!",
-        description: "Dados de balanço importados com sucesso.",
-      });
-
-      // Reload financial data
-      loadFinancialData(selectedCompanyInfo.id);
-
-    } catch (error) {
-      console.error('Erro ao buscar dados da API:', error);
-      toast({
-        title: "Erro",
-        description: `Erro ao buscar dados da API: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
         variant: "destructive"
       });
     }
@@ -509,14 +370,9 @@ Busque pela empresa ou Ticker
               onSuccess={() => loadFinancialData(selectedCompany)}
               mode="create"
             />
-            <Button 
-              onClick={fetchBalanceData}
-              variant="outline"
-              className="w-full sm:w-auto"
-              disabled={!selectedCompanyInfo}
-            >
-              Dados de Balanço
-            </Button>
+            <BalanceDataDialog 
+              onSuccess={() => selectedCompany && loadFinancialData(selectedCompany)}
+            />
             {latestData && (
               <>
                 <FinancialDataDialog
